@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>人類圖學習筆記</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600&family=Noto+Sans+TC:wght@300;400;500;600&display=swap');
+
+  :root{
+    --bg:#f0ece4; --bg2:#e8e3d9; --bg3:#ddd8cc; --panel:#ede9e0;
+    --border:#ccc5b4; --border2:#b8b0a0;
+    --ink:#3a332a; --ink2:#6b6055; --ink3:#9b9080;
+    --accent:#7a5c3c; --accent2:#5c7a5c; --gold:#b8862a; --rust:#a04030;
+    --spine-gate:#c4a882; --spine-noted:#8aad8a; --spine-channel:#8ab0b0;
+    --font-serif:'Noto Serif TC', Georgia, serif;
+    --font-sans:'Noto Sans TC', sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--font-sans);min-height:100vh;font-size:14px}
+  ::placeholder{color:var(--ink3)}
+  ::-webkit-scrollbar{width:6px}
+  ::-webkit-scrollbar-track{background:var(--bg2)}
+  ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+  header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 6px rgba(90,70,40,.07)}
+  .logo{display:flex;align-items:center;gap:14px}
+  .logo-symbol{width:34px;height:34px;background:linear-gradient(135deg,var(--accent),var(--gold));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;flex-shrink:0}
+  .logo-text h1{font-family:var(--font-serif);font-size:18px;color:var(--ink);letter-spacing:.5px}
+  .logo-text span{font-size:10px;color:var(--ink3);letter-spacing:1.2px;text-transform:uppercase}
+  .header-stats{font-size:11px;color:var(--ink3);text-align:right;line-height:1.6}
+
+  nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 28px;display:flex}
+  nav button{background:none;border:none;border-bottom:2px solid transparent;color:var(--ink2);font-family:var(--font-sans);font-size:13px;font-weight:400;padding:12px 18px;cursor:pointer;letter-spacing:.3px;transition:all .15s}
+  nav button.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+  nav button:hover{color:var(--accent)}
+
+  .container{max-width:1180px;margin:0 auto;padding:22px 26px}
+
+  .stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+  .stat-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:13px 16px;text-align:center;border-top:3px solid var(--accent)}
+  .stat-card.gold{border-top-color:var(--gold)}
+  .stat-card .num{font-family:var(--font-serif);font-size:24px;color:var(--accent);line-height:1;margin-bottom:2px}
+  .stat-card .num .sub{font-size:11px;color:var(--ink3);margin-left:3px}
+  .stat-card .label{font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.8px}
+
+  .controls{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
+  .search-wrap{flex:1;min-width:200px;position:relative}
+  .search-wrap input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 12px 8px 32px;color:var(--ink);font-family:var(--font-sans);font-size:13px;outline:none}
+  .search-wrap input:focus{border-color:var(--accent)}
+  .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--ink3);font-size:13px}
+  .filter-btns{display:flex;gap:6px}
+  .filter-btn{background:transparent;border:1px solid var(--border);border-radius:20px;color:var(--ink2);font-size:12px;font-family:var(--font-sans);padding:5px 13px;cursor:pointer;transition:all .15s}
+  .filter-btn:hover{border-color:var(--accent)}
+  .filter-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px}
+  .item-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px 13px 12px 0;cursor:pointer;display:flex;min-height:90px;transition:box-shadow .18s,transform .18s}
+  .item-card:hover{box-shadow:0 3px 14px rgba(90,70,40,.13);transform:translateY(-2px)}
+  .spine{width:4px;border-radius:4px 0 0 4px;flex-shrink:0;margin-right:12px;align-self:stretch}
+  .spine.gate{background:var(--spine-gate)}
+  .spine.noted{background:var(--spine-noted)}
+  .spine.channel{background:var(--spine-channel)}
+  .card-body{flex:1;min-width:0}
+  .card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:4px;margin-bottom:4px}
+  .card-head-left{display:flex;align-items:baseline;gap:6px}
+  .card-icon{font-size:16px}
+  .card-number{font-family:var(--font-serif);font-size:20px;color:var(--accent);line-height:1}
+  .card-badge{font-size:10px;padding:2px 6px;border-radius:8px;background:#dceadc;color:var(--accent2);font-weight:600;flex-shrink:0}
+  .card-name{font-size:11px;color:var(--ink2);line-height:1.45;margin-bottom:3px}
+  .card-preview{font-size:10px;color:var(--ink3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  .channels-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:10px}
+  .channel-gates{font-family:var(--font-serif);font-size:16px;color:var(--accent2);line-height:1}
+  .channel-centers{font-size:10px;color:var(--ink3);margin-top:3px}
+
+  /* Modal */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(50,40,30,.45);z-index:200;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px)}
+  .modal-overlay.open{display:flex}
+  .modal{background:var(--bg);border:1px solid var(--border);border-radius:12px;width:100%;max-width:680px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(60,45,25,.18)}
+  .modal-header{padding:18px 24px 16px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;align-items:flex-start;justify-content:space-between;gap:12}
+  .modal-title-row{display:flex;align-items:baseline;gap:10px}
+  .modal-icon{font-size:26px}
+  .modal-number{font-family:var(--font-serif);font-size:30px;color:var(--accent);line-height:1}
+  .modal-gates-sub{font-family:var(--font-serif);font-size:14px;color:var(--accent2)}
+  .modal-subtitle{font-size:13px;color:var(--ink2);margin-top:3px}
+  .modal-centers{font-size:11px;color:var(--ink3);margin-top:2px}
+  .modal-close{background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--ink2);font-size:16px;cursor:pointer;padding:3px 10px;line-height:1.5}
+  .modal-close:hover{border-color:var(--accent);color:var(--accent)}
+
+  .add-bar{padding:10px 22px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;justify-content:space-between}
+  .add-bar-count{font-size:12px;color:var(--ink3)}
+  .btn-add{background:var(--accent);border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:600;padding:6px 14px;cursor:pointer}
+  .btn-add:hover{opacity:.88}
+
+  .modal-body{overflow-y:auto;flex:1}
+  .empty-entries{padding:44px 20px;text-align:center;color:var(--ink3)}
+  .empty-entries .icon{font-size:34px;margin-bottom:10px;opacity:.35}
+
+  .entry-view{border-bottom:1px solid var(--border);padding:16px 22px}
+  .entry-meta{font-size:11px;font-weight:600;color:var(--gold);margin-bottom:7px;display:flex;align-items:center;gap:8px}
+  .entry-meta .date{font-size:10px;color:var(--ink3);margin-left:auto;font-weight:400}
+  .entry-note{font-size:14px;color:var(--ink);line-height:1.85;white-space:pre-wrap;margin-bottom:8px;font-family:var(--font-serif)}
+  .entry-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+  .entry-tag{background:#e8e0d4;border:1px solid var(--border);border-radius:12px;font-size:10px;color:var(--accent);padding:2px 9px}
+  .entry-actions{display:flex;gap:6px;margin-top:6px}
+  .btn-edit{background:transparent;border:1px solid var(--border2);border-radius:6px;color:var(--ink2);font-size:11px;padding:4px 10px;cursor:pointer}
+  .btn-del{background:transparent;border:1px solid var(--rust);border-radius:6px;color:var(--rust);font-size:11px;padding:4px 10px;cursor:pointer}
+  .btn-edit:hover,.btn-del:hover{opacity:.75}
+
+  .entry-form{border-bottom:1px solid var(--border);padding:16px 22px;background:#ece7de}
+  .form-label{font-size:11px;font-weight:600;color:var(--accent);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .form-label::after{content:'';flex:1;height:1px;background:var(--border)}
+  .form-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--ink);font-size:12px;padding:7px 11px;outline:none;margin-bottom:8px;font-family:var(--font-sans)}
+  .form-input:focus{border-color:var(--accent)}
+  .form-textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--ink);font-size:14px;padding:10px 12px;outline:none;resize:vertical;min-height:110px;line-height:1.8;margin-bottom:8px;font-family:var(--font-serif)}
+  .form-textarea:focus{border-color:var(--accent)}
+  .form-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+  .form-tag{background:#e8e0d4;border:1px solid var(--border);border-radius:12px;font-size:11px;color:var(--accent);padding:3px 9px;display:flex;align-items:center;gap:4px}
+  .form-tag .rm{color:var(--ink3);cursor:pointer;font-size:10px}
+  .form-tag .rm:hover{color:var(--rust)}
+  .form-tag-row{display:flex;gap:6px;margin-bottom:10px}
+  .form-tag-row input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--ink);font-size:12px;padding:5px 10px;outline:none;font-family:var(--font-sans)}
+  .btn-ghost-sm{background:transparent;border:1px solid var(--border2);border-radius:6px;color:var(--ink2);font-size:12px;padding:5px 10px;cursor:pointer}
+  .form-actions{display:flex;gap:7px;justify-content:flex-end}
+  .btn-cancel{background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--ink2);font-size:12px;padding:6px 12px;cursor:pointer}
+  .btn-save{background:var(--accent);border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:600;padding:6px 16px;cursor:pointer}
+
+  .modal-footer{padding:11px 22px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--bg2)}
+  .btn-clear{background:transparent;border:1px solid var(--rust);border-radius:6px;color:var(--rust);font-size:12px;padding:5px 10px;cursor:pointer}
+  .btn-close{background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--ink2);font-size:12px;padding:5px 12px;cursor:pointer}
+
+  /* Review */
+  .review-layout{display:grid;grid-template-columns:248px 1fr;border:1px solid var(--border);border-radius:10px;overflow:hidden;height:calc(100vh - 116px);box-shadow:0 2px 12px rgba(90,70,40,.07)}
+  .review-sidebar{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+  .review-search{padding:11px 10px;border-bottom:1px solid var(--border);position:relative}
+  .review-search input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:7px;color:var(--ink);font-size:12px;padding:7px 10px 7px 28px;outline:none;font-family:var(--font-sans)}
+  .review-search .si{position:absolute;left:20px;top:50%;transform:translateY(-50%);color:var(--ink3);font-size:11px}
+  .review-tabs{display:flex;border-bottom:1px solid var(--border)}
+  .review-tabs button{flex:1;background:none;border:none;color:var(--ink3);font-size:11px;font-weight:400;padding:8px 4px;cursor:pointer;border-bottom:2px solid transparent;font-family:var(--font-sans)}
+  .review-tabs button.active{color:var(--accent);font-weight:600;border-bottom-color:var(--accent)}
+  .review-list{overflow-y:auto;flex:1}
+  .review-item{padding:9px 14px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px;border-left:3px solid transparent;transition:background .12s}
+  .review-item:hover{background:var(--bg3)}
+  .review-item.active{background:var(--bg3);border-left-color:var(--accent)}
+  .review-item-icon{font-size:15px;flex-shrink:0}
+  .review-item-num{font-family:var(--font-serif);font-size:14px;min-width:24px;flex-shrink:0}
+  .review-item-num.gate{color:var(--accent)}
+  .review-item-num.channel{color:var(--accent2)}
+  .review-item-info{flex:1;min-width:0}
+  .review-item-name{font-size:11px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .review-item-meta{font-size:10px;color:var(--ink3);margin-top:1px}
+  .review-item-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);flex-shrink:0}
+  .review-empty-list{padding:44px 14px;text-align:center;color:var(--ink3);font-size:12px}
+
+  .review-content{overflow-y:auto;background:var(--bg)}
+  .review-content-inner{padding:28px 32px;max-width:740px}
+  .review-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--ink3);text-align:center;padding:40px}
+  .review-empty .icon{font-size:44px;margin-bottom:14px;opacity:.3}
+
+  .review-header{margin-bottom:26px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+  .review-title-row{display:flex;align-items:baseline;gap:12px;margin-bottom:4px}
+  .review-icon{font-size:36px}
+  .review-big-num{font-family:var(--font-serif);font-size:42px;line-height:1}
+  .review-big-num.gate{color:var(--accent)}
+  .review-big-num.channel{color:var(--accent2)}
+  .review-title{font-size:17px;color:var(--ink);font-family:var(--font-serif)}
+  .review-centers{font-size:12px;color:var(--ink3);margin-top:3px}
+  .review-meta-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+  .review-pill{background:var(--bg3);border:1px solid var(--border);border-radius:12px;font-size:11px;color:var(--ink2);padding:3px 11px}
+  .review-edit-btn{margin-top:12px}
+
+  .section-title{font-size:10px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+  .section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+  .review-entry{background:var(--panel);border:1px solid var(--border);border-radius:9px;margin-bottom:14px;overflow:hidden;border-left:3px solid var(--gold)}
+  .review-entry-head{background:var(--bg2);border-bottom:1px solid var(--border);padding:9px 15px;display:flex;align-items:center;gap:10px}
+  .review-entry-book{font-size:13px;font-weight:600;color:var(--gold);flex:1}
+  .review-entry-date{font-size:10px;color:var(--ink3)}
+  .review-entry-note{padding:14px 18px;font-size:14px;color:var(--ink);line-height:1.85;white-space:pre-wrap;font-family:var(--font-serif)}
+  .review-entry-tags{padding:0 18px 12px;display:flex;gap:6px;flex-wrap:wrap}
+
+  .toast{position:fixed;bottom:24px;right:24px;background:#dceadc;border:1px solid var(--accent2);border-radius:8px;color:var(--accent2);font-size:13px;padding:9px 17px;z-index:999;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none;font-weight:600;box-shadow:0 2px 12px rgba(0,0,0,.1)}
+  .toast.show{opacity:1;transform:translateY(0)}
+
+  @media (max-width:700px){
+    header{padding:13px 14px} nav{padding:0 14px} .container{padding:14px}
+    .stats-bar{grid-template-columns:repeat(2,1fr)}
+    .grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+    .channels-grid{grid-template-columns:1fr 1fr}
+    .review-layout{grid-template-columns:1fr;height:auto}
+    .review-sidebar{max-height:280px}
+    .review-content-inner{padding:16px}
+    .review-big-num{font-size:34px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-symbol">⬡</div>
+    <div class="logo-text">
+      <h1>人類圖學習筆記</h1>
+      <span>Human Design Study Notes</span>
+    </div>
+  </div>
+  <div class="header-stats" id="headerStats"></div>
+</header>
+
+<nav>
+  <button class="active" onclick="showTab('gates')">閘門 Gates</button>
+  <button onclick="showTab('channels')">通道 Channels</button>
+  <button onclick="showTab('review')">溫習 Review</button>
+</nav>
+
+<div class="container" id="mainContainer">
+  <div class="stats-bar" id="statsBar"></div>
+  <div class="controls">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="搜尋閘門、通道、書名、關鍵字…" oninput="renderCurrent()">
+    </div>
+    <div class="filter-btns" id="filterBtns">
+      <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">全部</button>
+      <button class="filter-btn" data-filter="noted" onclick="setFilter('noted')">已記錄 ✓</button>
+      <button class="filter-btn" data-filter="empty" onclick="setFilter('empty')">未記錄</button>
+    </div>
+  </div>
+  <div id="mainGrid"></div>
+</div>
+
+<div id="reviewTab" style="display:none;max-width:1180px;margin:0 auto;padding:18px 26px;">
+  <div class="review-layout">
+    <div class="review-sidebar">
+      <div class="review-search">
+        <span class="si">🔍</span>
+        <input type="text" id="reviewSearch" placeholder="搜尋…" oninput="renderReviewList()">
+      </div>
+      <div class="review-tabs">
+        <button class="active" id="rv_all" onclick="setReviewFilter('all')">全部</button>
+        <button id="rv_gates" onclick="setReviewFilter('gates')">閘門</button>
+        <button id="rv_channels" onclick="setReviewFilter('channels')">通道</button>
+      </div>
+      <div class="review-list" id="reviewList"></div>
+    </div>
+    <div class="review-content" id="reviewContent">
+      <div class="review-empty"><div class="icon">☽</div><p>從左側選擇一個閘門或通道<br>查看你記錄的所有筆記</p></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalBg(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title-row">
+          <span class="modal-icon" id="modalIcon"></span>
+          <div class="modal-number" id="modalNumber"></div>
+          <div class="modal-gates-sub" id="modalGatesSub" style="display:none"></div>
+        </div>
+        <div class="modal-subtitle" id="modalSubtitle"></div>
+        <div class="modal-centers" id="modalCenters" style="display:none"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="add-bar">
+      <span class="add-bar-count" id="addBarCount"></span>
+      <button class="btn-add" onclick="startAdd()">＋ 新增筆記</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer">
+      <button class="btn-clear" onclick="clearAllEntries()">清除全部筆記</button>
+      <button class="btn-close" onclick="closeModal()">關閉</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const GATE_NAMES = {
+  1:"創意/自我表達",2:"接受/方向",3:"秩序/和諧",4:"公式化/解答",5:"等待/規律",
+  6:"摩擦/和平",7:"領導力/角色",8:"凝聚力/展示",9:"專注/細節",10:"自愛/行為",
+  11:"想法/和平",12:"謹慎/停頓",13:"傾聽者/夥伴",14:"力量/技能",15:"博愛/人類",
+  16:"技能/熱忱",17:"意見/追隨",18:"糾正/裁判",19:"想要/需求",20:"現在/沉默",
+  21:"掌控/叮嚀",22:"恩典/開放",23:"同化/分裂",24:"理性化/回歸",25:"精神/靈魂",
+  26:"自我/魔術師",27:"滋養/關懷",28:"遊戲/鬥爭",29:"毅力/承諾",30:"感覺/欲望",
+  31:"影響力/領導",32:"延續/持久",33:"隱退/隱私",34:"力量/蠻力",35:"變化/進步",
+  36:"危機/黑暗",37:"友誼/家族",38:"鬥士/反對",39:"激煽/煽動",40:"孤獨/解放",
+  41:"幻想/收縮",42:"成長/完成",43:"突破/洞見",44:"警覺/過去",45:"聚集/支配",
+  46:"身體/機遇",47:"實現/決意",48:"深度/不足",49:"革命/原則",50:"價值觀/責任",
+  51:"震驚/倡議",52:"靜止/保持",53:"發展/起始",54:"雄心/轉化",55:"精神/豐盛",
+  56:"刺激/遊蕩",57:"直覺/溫柔",58:"喜悅/活躍",59:"性慾/透明",60:"接受/局限",
+  61:"奧秘/真理",62:"細節/謹慎",63:"疑惑/懷疑",64:"混淆/完成"
+};
+const GATE_ICONS = {
+  1:"🎨",2:"🧭",3:"🌱",4:"🧩",5:"⏳",6:"🤝",7:"👑",8:"✨",9:"🔬",10:"💗",
+  11:"💡",12:"🤫",13:"👂",14:"⚡",15:"🌊",16:"🎯",17:"💭",18:"⚖️",19:"🫶",20:"🧘",
+  21:"🛡️",22:"🌸",23:"🔀",24:"🔄",25:"🕊️",26:"🎩",27:"🌾",28:"🎲",29:"🔥",30:"🌙",
+  31:"📣",32:"🛡️",33:"🤐",34:"💪",35:"📈",36:"🌑",37:"🏠",38:"⚔️",39:"🪄",40:"🏝️",
+  41:"💭",42:"🍂",43:"💥",44:"🐅",45:"👸",46:"🌺",47:"🔮",48:"🌊",49:"🚩",50:"⚓",
+  51:"⚡",52:"🗻",53:"🌰",54:"🪜",55:"🦋",56:"🎭",57:"👃",58:"🎉",59:"💞",60:"🎋",
+  61:"🔭",62:"🗂️",63:"❓",64:"🌫️"
+};
+const CHANNELS_DATA = [
+  {id:"1-8",g1:1,g2:8,name:"靈感的通道",c1:"G",c2:"喉嚨",icon:"🎨"},
+  {id:"2-14",g1:2,g2:14,name:"脈動的通道",c1:"G",c2:"骶骨",icon:"💓"},
+  {id:"3-60",g1:3,g2:60,name:"突變的通道",c1:"骶骨",c2:"根",icon:"🌪️"},
+  {id:"4-63",g1:4,g2:63,name:"邏輯的通道",c1:"喉嚨",c2:"腦額",icon:"🧮"},
+  {id:"5-15",g1:5,g2:15,name:"韻律的通道",c1:"骶骨",c2:"G",icon:"🎵"},
+  {id:"6-59",g1:6,g2:59,name:"生育的通道",c1:"情感",c2:"骶骨",icon:"🌼"},
+  {id:"7-31",g1:7,g2:31,name:"阿爾法的通道",c1:"G",c2:"喉嚨",icon:"🦁"},
+  {id:"9-52",g1:9,g2:52,name:"專注的通道",c1:"骶骨",c2:"根",icon:"🎯"},
+  {id:"10-20",g1:10,g2:20,name:"清醒的通道",c1:"G",c2:"喉嚨",icon:"🌅"},
+  {id:"10-34",g1:10,g2:34,name:"探索的通道",c1:"G",c2:"骶骨",icon:"🧭"},
+  {id:"10-57",g1:10,g2:57,name:"完美形式的通道",c1:"G",c2:"脾臟",icon:"💎"},
+  {id:"11-56",g1:11,g2:56,name:"好奇的通道",c1:"阿吉那",c2:"喉嚨",icon:"🔍"},
+  {id:"12-22",g1:12,g2:22,name:"開放的通道",c1:"喉嚨",c2:"情感",icon:"🌷"},
+  {id:"13-33",g1:13,g2:33,name:"浪子的通道",c1:"G",c2:"喉嚨",icon:"📜"},
+  {id:"16-48",g1:16,g2:48,name:"波長的通道",c1:"喉嚨",c2:"脾臟",icon:"📡"},
+  {id:"17-62",g1:17,g2:62,name:"接受的通道",c1:"阿吉那",c2:"喉嚨",icon:"📋"},
+  {id:"18-58",g1:18,g2:58,name:"裁判的通道",c1:"脾臟",c2:"根",icon:"⚖️"},
+  {id:"19-49",g1:19,g2:49,name:"感受的通道",c1:"根",c2:"情感",icon:"🫂"},
+  {id:"20-34",g1:20,g2:34,name:"魅力的通道",c1:"喉嚨",c2:"骶骨",icon:"🔥"},
+  {id:"20-57",g1:20,g2:57,name:"腦波的通道",c1:"喉嚨",c2:"脾臟",icon:"🧠"},
+  {id:"21-45",g1:21,g2:45,name:"金錢線",c1:"意志力",c2:"喉嚨",icon:"💰"},
+  {id:"23-43",g1:23,g2:43,name:"結構的通道",c1:"喉嚨",c2:"阿吉那",icon:"🏗️"},
+  {id:"24-61",g1:24,g2:61,name:"知識的通道",c1:"阿吉那",c2:"頭頂",icon:"📚"},
+  {id:"25-51",g1:25,g2:51,name:"倡議的通道",c1:"G",c2:"意志力",icon:"⚡"},
+  {id:"26-44",g1:26,g2:44,name:"投降的通道",c1:"意志力",c2:"脾臟",icon:"🙏"},
+  {id:"27-50",g1:27,g2:50,name:"保護的通道",c1:"骶骨",c2:"脾臟",icon:"🛡️"},
+  {id:"28-38",g1:28,g2:38,name:"鬥爭的通道",c1:"脾臟",c2:"根",icon:"⚔️"},
+  {id:"29-46",g1:29,g2:46,name:"發現的通道",c1:"骶骨",c2:"G",icon:"🌟"},
+  {id:"30-41",g1:30,g2:41,name:"認識的通道",c1:"情感",c2:"根",icon:"🌒"},
+  {id:"32-54",g1:32,g2:54,name:"轉化的通道",c1:"脾臟",c2:"根",icon:"🦋"},
+  {id:"33-13",g1:33,g2:13,name:"浪子的通道",c1:"喉嚨",c2:"G",icon:"📜"},
+  {id:"34-57",g1:34,g2:57,name:"力量的通道",c1:"骶骨",c2:"脾臟",icon:"💪"},
+  {id:"35-36",g1:35,g2:36,name:"短暫的通道",c1:"喉嚨",c2:"情感",icon:"🎢"},
+  {id:"37-40",g1:37,g2:40,name:"社群的通道",c1:"情感",c2:"意志力",icon:"🏘️"},
+  {id:"39-55",g1:39,g2:55,name:"情感的通道",c1:"根",c2:"情感",icon:"🌧️"},
+  {id:"42-53",g1:42,g2:53,name:"成熟的通道",c1:"骶骨",c2:"根",icon:"🌳"},
+  {id:"47-64",g1:47,g2:64,name:"抽象的通道",c1:"阿吉那",c2:"頭頂",icon:"🌌"}
+];
+const seen=new Set(); const CHANNELS=[];
+CHANNELS_DATA.forEach(c=>{if(!seen.has(c.id)){seen.add(c.id);CHANNELS.push(c);}});
+
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+const today=()=>new Date().toLocaleDateString("zh-TW",{year:"numeric",month:"2-digit",day:"2-digit"});
+const hasContent=n=>n&&n.entries&&n.entries.length>0;
+function esc(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+let notes={}; let currentTab="gates"; let currentFilter="all"; let currentItem=null;
+let reviewFilter="all"; let reviewSelected=null;
+
+function loadNotes(){try{notes=JSON.parse(localStorage.getItem("hd_notes_v2")||"{}");}catch{notes={};}}
+function saveNotesLS(){localStorage.setItem("hd_notes_v2",JSON.stringify(notes));}
+
+loadNotes();
+renderStats();
+renderGates();
+
+function showToast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg; t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2000);
+}
+
+function showTab(tab){
+  currentTab=tab;
+  document.querySelectorAll("nav button").forEach((b,i)=>{
+    b.classList.toggle("active",(tab==="gates"&&i===0)||(tab==="channels"&&i===1)||(tab==="review"&&i===2));
+  });
+  const main=document.getElementById("mainContainer"), rv=document.getElementById("reviewTab");
+  if(tab==="review"){ main.style.display="none"; rv.style.display="block"; renderReviewList(); }
+  else{ main.style.display=""; rv.style.display="none"; renderCurrent(); renderStats(); }
+}
+function setFilter(f){ currentFilter=f; document.querySelectorAll(".filter-btn").forEach(b=>b.classList.toggle("active",b.dataset.filter===f)); renderCurrent(); }
+function renderCurrent(){ if(currentTab==="gates") renderGates(); else renderChannels(); }
+
+function renderStats(){
+  const gNoted=Object.keys(notes).filter(k=>k.startsWith("gate_")&&hasContent(notes[k])).length;
+  const cNoted=Object.keys(notes).filter(k=>k.startsWith("channel_")&&hasContent(notes[k])).length;
+  const total=Object.values(notes).reduce((s,n)=>s+(n.entries?n.entries.length:0),0);
+  document.getElementById("statsBar").innerHTML=`
+    <div class="stat-card"><div class="num">${gNoted}<span class="sub">/ 64</span></div><div class="label">閘門已記錄</div></div>
+    <div class="stat-card"><div class="num">${cNoted}<span class="sub">/ 36</span></div><div class="label">通道已記錄</div></div>
+    <div class="stat-card gold"><div class="num">${total}</div><div class="label">筆記總條數</div></div>
+    <div class="stat-card gold"><div class="num">${gNoted+cNoted}<span class="sub">/ 100</span></div><div class="label">已記錄項目</div></div>
+  `;
+  document.getElementById("headerStats").innerHTML=`<div>${gNoted} 閘門 · ${cNoted} 通道</div><div>${total} 條筆記</div>`;
+}
+
+function renderGates(){
+  const q=document.getElementById("searchInput").value.toLowerCase();
+  const grid=document.getElementById("mainGrid"); grid.className="grid";
+  let items=[];
+  for(let i=1;i<=64;i++){
+    const key=`gate_${i}`, n=notes[key], hc=hasContent(n);
+    if(currentFilter==="noted"&&!hc) continue;
+    if(currentFilter==="empty"&&hc) continue;
+    if(q){const blob=`${i} ${GATE_NAMES[i]||""} ${(n?.entries||[]).map(e=>e.book+" "+e.note+" "+(e.tags||[]).join(" ")).join(" ")}`.toLowerCase(); if(!blob.includes(q)) continue;}
+    items.push({i,key,n,hc});
+  }
+  if(!items.length){grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:50px;color:var(--ink3)">沒有符合的閘門</div>`;return;}
+  grid.innerHTML=items.map(({i,key,n,hc})=>{
+    const cnt=n?.entries?.length||0;
+    const preview=n?.entries?.[cnt-1]?.note?.substring(0,50)||"";
+    return `
+      <div class="item-card" onclick="openItem('${key}')">
+        <div class="spine ${hc?'noted':'gate'}"></div>
+        <div class="card-body">
+          <div class="card-head">
+            <div class="card-head-left"><span class="card-icon">${GATE_ICONS[i]}</span><div class="card-number">${i}</div></div>
+            ${hc?`<span class="card-badge">${cnt}條</span>`:""}
+          </div>
+          <div class="card-name">${GATE_NAMES[i]}</div>
+          ${preview?`<div class="card-preview">${esc(preview)}…</div>`:""}
+        </div>
+      </div>`;
+  }).join("");
+}
+
+function renderChannels(){
+  const q=document.getElementById("searchInput").value.toLowerCase();
+  const grid=document.getElementById("mainGrid"); grid.className="channels-grid";
+  let items=CHANNELS.filter(c=>{
+    const key=`channel_${c.id}`, n=notes[key], hc=hasContent(n);
+    if(currentFilter==="noted"&&!hc) return false;
+    if(currentFilter==="empty"&&hc) return false;
+    if(q){const blob=`${c.id} ${c.name} ${(n?.entries||[]).map(e=>e.book+" "+e.note).join(" ")}`.toLowerCase(); return blob.includes(q);}
+    return true;
+  });
+  if(!items.length){grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:50px;color:var(--ink3)">沒有符合的通道</div>`;return;}
+  grid.innerHTML=items.map(c=>{
+    const key=`channel_${c.id}`, n=notes[key], hc=hasContent(n), cnt=n?.entries?.length||0;
+    return `
+      <div class="item-card" onclick="openItem('${key}')">
+        <div class="spine ${hc?'noted':'channel'}"></div>
+        <div class="card-body">
+          <div class="card-head-left" style="margin-bottom:3px"><span class="card-icon">${c.icon}</span><div class="channel-gates">${c.g1} — ${c.g2}</div></div>
+          <div class="card-name">${c.name}</div>
+          <div class="channel-centers">${c.c1} ↔ ${c.c2}</div>
+          ${hc?`<div style="margin-top:6px"><span class="card-badge">${cnt} 條筆記</span></div>`:""}
+        </div>
+      </div>`;
+  }).join("");
+}
+
+// ── Modal ──
+function openItem(key){
+  currentItem=key;
+  const isGate=key.startsWith("gate_");
+  const num=isGate?parseInt(key.replace("gate_","")):null;
+  const ch=isGate?null:CHANNELS.find(c=>c.id===key.replace("channel_",""));
+
+  document.getElementById("modalIcon").textContent=isGate?GATE_ICONS[num]:(ch?ch.icon:"");
+  document.getElementById("modalNumber").textContent=isGate?`閘門 ${num}`:`通道 ${key.replace("channel_","")}`;
+  const gs=document.getElementById("modalGatesSub");
+  if(!isGate&&ch){gs.style.display="";gs.textContent=`閘門 ${ch.g1} ↔ ${ch.g2}`;} else gs.style.display="none";
+  document.getElementById("modalSubtitle").textContent=isGate?(GATE_NAMES[num]||""):(ch?ch.name:"");
+  const mc=document.getElementById("modalCenters");
+  if(ch){mc.style.display="";mc.textContent=`${ch.c1} ↔ ${ch.c2}`;} else mc.style.display="none";
+
+  renderModalBody();
+  document.getElementById("modalOverlay").classList.add("open");
+}
+function closeModal(){ document.getElementById("modalOverlay").classList.remove("open"); currentItem=null; }
+function closeModalBg(e){ if(e.target===e.currentTarget) closeModal(); }
+
+function renderModalBody(){
+  const n=notes[currentItem]||{}; const entries=n.entries||[];
+  document.getElementById("addBarCount").textContent = entries.length?`共 ${entries.length} 條筆記`:"尚無筆記";
+  const body=document.getElementById("modalBody");
+  if(entries.length===0){
+    body.innerHTML=`<div class="empty-entries"><div class="icon">📖</div><div>還沒有筆記<br>點上方「新增筆記」開始記錄</div></div>`;
+    return;
+  }
+  body.innerHTML=entries.map(e=>`
+    <div class="entry-view" id="ev_${e.id}">
+      <div class="entry-meta"><span>📚</span><span>${esc(e.book||"未標注來源")}</span><span class="date">${e.date||""}</span></div>
+      ${e.note?`<div class="entry-note">${esc(e.note)}</div>`:""}
+      ${e.tags&&e.tags.length?`<div class="entry-tags">${e.tags.map(t=>`<span class="entry-tag">#${esc(t)}</span>`).join("")}</div>`:""}
+      <div class="entry-actions">
+        <button class="btn-edit" onclick="startEdit('${e.id}')">✏️ 修改</button>
+        <button class="btn-del" onclick="deleteEntry('${e.id}')">🗑 刪除</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+function startAdd(){
+  const body=document.getElementById("modalBody");
+  if(document.getElementById("entryFormArea")) return;
+  const div=document.createElement("div");
+  div.id="entryFormArea";
+  div.innerHTML=entryFormHTML(null,"新增筆記");
+  body.appendChild(div);
+  div.scrollIntoView({behavior:"smooth",block:"end"});
+}
+
+function startEdit(id){
+  cancelForm();
+  const n=notes[currentItem]; const entry=n.entries.find(e=>e.id===id);
+  const el=document.getElementById(`ev_${id}`);
+  const div=document.createElement("div");
+  div.id="entryFormArea"; div.dataset.editId=id;
+  div.innerHTML=entryFormHTML(entry,"修改筆記");
+  el.replaceWith(div);
+}
+
+function cancelForm(){
+  const f=document.getElementById("entryFormArea");
+  if(f){
+    if(f.dataset.editId){ renderModalBody(); }
+    else f.remove();
+  }
+}
+
+function entryFormHTML(entry,label){
+  const book=entry?entry.book||"":"";
+  const note=entry?entry.note||"":"";
+  const tags=entry?entry.tags||[]:[];
+  window.__formTags = tags.slice();
+  return `
+    <div class="entry-form">
+      <div class="form-label">${label}</div>
+      <input class="form-input" id="f_book" placeholder="📚 書名 / 來源（可選）" value="${esc(book)}">
+      <textarea class="form-textarea" id="f_note" placeholder="寫下這本書對這個閘門 / 通道的詮釋、你的感悟…">${esc(note)}</textarea>
+      <div class="form-tags" id="f_tags"></div>
+      <div class="form-tag-row">
+        <input type="text" id="f_tag_input" placeholder="加標籤後按 Enter…" onkeydown="if(event.key==='Enter'){event.preventDefault();addFormTag();}">
+        <button class="btn-ghost-sm" onclick="addFormTag()">+ 標籤</button>
+      </div>
+      <div class="form-actions">
+        <button class="btn-cancel" onclick="cancelForm()">取消</button>
+        <button class="btn-save" onclick="submitForm()">${entry?"儲存修改":"儲存筆記"}</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderFormTags(){
+  document.getElementById("f_tags").innerHTML=(window.__formTags||[]).map((t,i)=>
+    `<span class="form-tag">#${esc(t)}<span class="rm" onclick="removeFormTag(${i})"> ×</span></span>`
+  ).join("");
+}
+setTimeout(()=>{ const obs=new MutationObserver(()=>{ if(document.getElementById("f_tags")) renderFormTags(); }); obs.observe(document.body,{childList:true,subtree:true}); },0);
+
+function addFormTag(){
+  const input=document.getElementById("f_tag_input");
+  const v=input.value.trim();
+  if(v && !(window.__formTags||[]).includes(v)){ window.__formTags=window.__formTags||[]; window.__formTags.push(v); }
+  input.value=""; renderFormTags();
+}
+function removeFormTag(i){ window.__formTags.splice(i,1); renderFormTags(); }
+
+function submitForm(){
+  const book=document.getElementById("f_book").value;
+  const note=document.getElementById("f_note").value;
+  const tags=(window.__formTags||[]).slice();
+  if(!note.trim()&&!book.trim()) return;
+
+  const n = notes[currentItem] || {entries:[]};
+  n.entries = n.entries || [];
+  const formArea=document.getElementById("entryFormArea");
+  const editId=formArea?formArea.dataset.editId:null;
+
+  if(editId){
+    n.entries = n.entries.map(e=>e.id===editId?{...e,book,note,tags}:e);
+    showToast("已修改 ✓");
+  } else {
+    n.entries.push({id:uid(),book,note,tags,date:today()});
+    showToast("已儲存 ✓");
+  }
+  notes[currentItem]=n;
+  saveNotesLS();
+  renderModalBody();
+  renderCurrent();
+  renderStats();
+}
+
+function deleteEntry(id){
+  if(!confirm("確定刪除這條筆記？")) return;
+  const n=notes[currentItem];
+  n.entries=n.entries.filter(e=>e.id!==id);
+  if(n.entries.length===0) delete notes[currentItem]; else notes[currentItem]=n;
+  saveNotesLS();
+  renderModalBody();
+  renderCurrent();
+  renderStats();
+  showToast("已刪除");
+}
+
+function clearAllEntries(){
+  if(!confirm("確定清除全部筆記？")) return;
+  delete notes[currentItem];
+  saveNotesLS();
+  closeModal();
+  renderCurrent();
+  renderStats();
+  showToast("已清除");
+}
+
+// ── Review ──
+function setReviewFilter(f){
+  reviewFilter=f;
+  ["all","gates","channels"].forEach(x=>document.getElementById(`rv_${x}`)?.classList.toggle("active",x===f));
+  renderReviewList();
+}
+
+function renderReviewList(){
+  const q=(document.getElementById("reviewSearch")?.value||"").toLowerCase();
+  const list=document.getElementById("reviewList");
+  let items=[];
+  if(reviewFilter!=="channels"){
+    for(let i=1;i<=64;i++){
+      const key=`gate_${i}`, n=notes[key];
+      if(!hasContent(n)) continue;
+      if(q){const blob=`${i} ${GATE_NAMES[i]||""} ${(n.entries||[]).map(e=>e.book+" "+e.note).join(" ")}`.toLowerCase(); if(!blob.includes(q)) continue;}
+      items.push({key,disp:String(i),name:GATE_NAMES[i]||"",cnt:n.entries.length,type:"gate",icon:GATE_ICONS[i]});
+    }
+  }
+  if(reviewFilter!=="gates"){
+    CHANNELS.forEach(c=>{
+      const key=`channel_${c.id}`, n=notes[key];
+      if(!hasContent(n)) return;
+      if(q){const blob=`${c.id} ${c.name} ${(n.entries||[]).map(e=>e.book+" "+e.note).join(" ")}`.toLowerCase(); if(!blob.includes(q)) return;}
+      items.push({key,disp:c.id,name:c.name,cnt:n.entries.length,type:"channel",icon:c.icon});
+    });
+  }
+  if(!items.length){ list.innerHTML=`<div class="review-empty-list">尚無筆記記錄<br><span style="font-size:11px;display:block;margin-top:4px;">去閘門或通道頁新增吧</span></div>`; return; }
+  list.innerHTML=items.map(it=>`
+    <div class="review-item ${reviewSelected===it.key?'active':''}" onclick="selectReview('${it.key}')">
+      <span class="review-item-icon">${it.icon}</span>
+      <div class="review-item-num ${it.type}">${it.disp}</div>
+      <div class="review-item-info">
+        <div class="review-item-name">${esc(it.name)}</div>
+        <div class="review-item-meta">${it.type==="gate"?"閘門":"通道"} · ${it.cnt} 條</div>
+      </div>
+      <div class="review-item-dot"></div>
+    </div>
+  `).join("");
+}
+
+function selectReview(key){ reviewSelected=key; renderReviewList(); renderReviewContent(key); }
+
+function renderReviewContent(key){
+  const n=notes[key]||{};
+  const content=document.getElementById("reviewContent");
+  const isGate=key.startsWith("gate_");
+  let title,subtitle,icon,centersHTML="";
+  if(isGate){
+    const num=parseInt(key.replace("gate_",""));
+    title=`閘門 ${num}`; subtitle=GATE_NAMES[num]||""; icon=GATE_ICONS[num];
+  } else {
+    const cid=key.replace("channel_","");
+    const ch=CHANNELS.find(c=>c.id===cid);
+    title=`通道 ${cid}`; subtitle=ch?ch.name:""; icon=ch?ch.icon:"";
+    if(ch) centersHTML=`<div class="review-centers">${ch.c1} ↔ ${ch.c2}</div>`;
+  }
+  const entries=n.entries||[];
+  content.innerHTML=`
+    <div class="review-content-inner">
+      <div class="review-header">
+        <div class="review-title-row">
+          <span class="review-icon">${icon}</span>
+          <div class="review-big-num ${isGate?'gate':'channel'}">${title}</div>
+        </div>
+        <div class="review-title">${esc(subtitle)}</div>
+        ${centersHTML}
+        <div class="review-meta-row">
+          <span class="review-pill">${isGate?"閘門":"通道"}</span>
+          <span class="review-pill">${entries.length} 條筆記</span>
+        </div>
+        <div class="review-edit-btn"><button class="btn-add" onclick="openItem('${key}');showTab('${isGate?'gates':'channels'}')">✏️ 新增 / 編輯</button></div>
+      </div>
+      <div class="section-title">所有筆記（按時間順序）</div>
+      ${entries.map(e=>`
+        <div class="review-entry">
+          <div class="review-entry-head"><span>📚</span><span class="review-entry-book">${esc(e.book||"未標注來源")}</span><span class="review-entry-date">${e.date||""}</span></div>
+          ${e.note?`<div class="review-entry-note">${esc(e.note)}</div>`:""}
+          ${e.tags&&e.tags.length?`<div class="review-entry-tags">${e.tags.map(t=>`<span class="entry-tag">#${esc(t)}</span>`).join("")}</div>`:""}
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+</script>
+</body>
+</html>
